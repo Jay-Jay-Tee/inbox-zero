@@ -1,0 +1,358 @@
+body {
+    margin: 0;
+    width: 320px;
+    font-family: Arial, sans-serif;
+    background: #1e1e1e;
+    color: #fff;
+    border-radius: 3mm;
+}
+
+.container {
+    padding: 1vw;
+}
+
+.section {
+    background: #2a2a2a;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 14px;
+}
+
+.section h2 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #f0f0f0;
+}
+
+.toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+/* SWITCH */
+.switch {
+    position: relative;
+    width: 42px;
+    height: 22px;
+}
+
+.switch input {
+    display: none;
+}
+
+.slider {
+    position: absolute;
+    inset: 0;
+    background: #555;
+    border-radius: 34px;
+    transition: .35s;
+    cursor: pointer;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: .35s;
+}
+
+input:checked+.slider {
+    background: #ff8c00;
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+}
+
+/* TEMPLATE LIST */
+.template-list {
+    max-height: 140px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.template-box {
+    position: relative;
+    background: #333;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: background .2s, box-shadow .25s, font-weight .2s, border .2s;
+    border: 1px solid transparent;
+}
+
+.template-box::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(120deg,
+            transparent,
+            rgba(255, 255, 255, .18),
+            transparent);
+    transition: left 1.5s ease;
+}
+
+.template-box:hover {
+    background: #3d3d3d;
+    font-weight: bold;
+    box-shadow: 0 0 8px rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .08);
+}
+
+.template-box:hover::after {
+    left: 140%;
+}
+
+/* Scrollbar */
+.template-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.template-list::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 6px;
+}
+
+/* Stats */
+.placeholder {
+    font-size: 13px;
+    color: #bbb;
+}
+
+/* API */
+.template-area {
+    margin-top: 8px;
+}
+
+.template-btn {
+    width: 100%;
+    background: #333;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.api-btn:hover {
+    background: #444;
+}
+
+.template-wrap {
+    display: none;
+    position: relative;
+}
+
+.template-send {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: #ff8c00;
+    color: white;
+    font-size: 11px;
+    padding: 4px 7px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* delete icon */
+.template-delete {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    opacity: .6;
+    cursor: pointer;
+}
+
+.template-delete:hover {
+    opacity: 1;
+}
+
+/* empty state */
+.no-templates {
+    text-align: center;
+    color: #888;
+    font-size: 13px;
+    padding: 10px 0;
+}
+
+.template-cancel {
+    position: absolute;
+    right: 34px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: #e74c3c;
+    color: white;
+    font-size: 11px;
+    padding: 4px 7px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#addTemplateWrap {
+    display: none;
+}
+
+.current-key {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #aaa;
+    word-break: break-all;
+    opacity: .85;
+    color: #cc3333;
+}
+
+.current-key span {
+    color: #fff;
+    font-weight: bold;
+}
+
+.api-section {
+    padding: 12px;
+}
+
+.api-header h3 {
+    margin: 0 0 6px 0;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+/* Base key container styling */
+.key-container {
+    margin-bottom: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #1f1f1f, #2a2a2a);
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    /* Always pulsing */
+    animation: keyPulse 2.8s ease-in-out infinite;
+}
+
+/* Faster + stronger pulse on hover */
+.key-container:hover {
+    animation: keyPulseHover 1.2s ease-in-out infinite;
+    border: 1px solid #4ade80;
+}
+
+/* Normal pulse */
+@keyframes keyPulse {
+    0% {
+        box-shadow: 0 0 0px rgba(74, 222, 128, 0.2);
+    }
+
+    50% {
+        box-shadow:
+            0 0 10px rgba(74, 222, 128, 0.6),
+            0 0 25px rgba(74, 222, 128, 0.3);
+    }
+
+    100% {
+        box-shadow: 0 0 0px rgba(74, 222, 128, 0.2);
+    }
+}
+
+/* Faster, stronger hover pulse */
+@keyframes keyPulseHover {
+    0% {
+        box-shadow: 0 0 5px rgba(74, 222, 128, 0.5);
+    }
+
+    50% {
+        box-shadow:
+            0 0 18px rgba(74, 222, 128, 1),
+            0 0 35px rgba(74, 222, 128, 0.7);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(74, 222, 128, 0.5);
+    }
+}
+
+.key-label {
+    font-size: 11px;
+    opacity: 0.6;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.key-display {
+    margin-top: 4px;
+    font-family: monospace;
+    font-size: 13px;
+    word-break: break-all;
+    color: #4ade80;
+    /* soft green */
+    letter-spacing: 1px;
+}
+
+.api-input-row {
+    display: grid;
+    grid-template-columns: 1fr 40px;
+    gap: 0; /* remove separation */
+    margin-top: 10px;
+}
+
+.api-input {
+    height: 40px;
+    padding: 0 12px;
+
+    border: 1px solid #333;
+    border-right: none;
+    border-radius: 10px 0 0 10px;
+
+    background: #1f1f1f;
+    color: white;
+    box-sizing: border-box;
+}
+
+.api-send {
+    height: 40px;
+    width: 40px;
+
+    border: 1px solid #333;
+    border-left: none;
+    border-radius: 0 10px 10px 0;
+
+    background: #4ade80;
+    color: #111;
+    font-weight: bold;
+    font-size: 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.api-send:hover {
+    background: #22c55e;
+}

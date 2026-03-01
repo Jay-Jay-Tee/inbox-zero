@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>InboxZero AI</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- TOGGLES -->
+        <div class="section">
+            <h2>Feature Toggles</h2>
+
+            <div class="toggle-row">
+                <span>Auto Summarize</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggleSummarize">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="toggle-row">
+                <span>Auto Categorize</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggleCategorize">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="toggle-row">
+                <span>Spam Alerts</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggleSpam">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        <!-- TEMPLATES -->
+        <div class="section">
+            <h2>Recent Templates</h2>
+
+            <div class="template-list" id="templateList"></div>
+
+            <div class="template-area">
+
+                <button class="template-btn" id="addTemplateBtn">Add Template</button>
+
+                <div class="template-wrap" id="addTemplateWrap">
+                    <input id="templateInput" class="template-input" placeholder="Type template text here...">
+                    <button class="template-send" id="saveTemplate">✓</button>
+                    <button class="template-cancel" id="cancelTemplate">✕</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="section">
+            <h2>Stats</h2>
+            <div class="placeholder">Inbox analytics will appear here</div>
+        </div>
+
+        <!-- API -->
+        <div class="api-section">
+            <div class="api-header">
+                <h3>Enter API Key</h3>
+            </div>
+
+            <!-- Stylish key display -->
+            <div id="keyContainer" class="key-container">
+                <span class="key-label">Current Key</span>
+                <div id="keyDisplay" class="key-display">
+                    Not set
+                </div>
+            </div>
+
+            <!-- Input row -->
+            <div class="api-input-row">
+                <input id="apiInput" class="api-input" placeholder="Enter key here...">
+                <button id="saveKey" class="api-send">✓</button>
+            </div>
+        </div>
+
+    </div>
+    <script src="popup.js"></script>
+</body>
+
+</html>
