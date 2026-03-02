@@ -56,10 +56,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
 
     case 'GET_SETTINGS':
-      chrome.storage.sync.get(['autoSummarize', 'autoCategory', 'spamAlerts', 'spamThreshold'], (data) => {
+      chrome.storage.sync.get(['autoSummarize', 'autoCategorize', 'spamAlerts', 'spamThreshold'], (data) => {
         sendResponse({
           autoSummarize: data.autoSummarize ?? true,
-          autoCategory: data.autoCategory ?? true,
+          autoCategorize: data.autoCategorize ?? true,
           spamAlerts: data.spamAlerts ?? true,
           spamThreshold: data.spamThreshold ?? 60,
         });
@@ -94,11 +94,12 @@ function incrementStat(key) {
 // -------------------------------------------------------
 // Extension Install — set defaults
 // -------------------------------------------------------
-chrome.runtime.onInstalled.addListener(() => {
-  console.log('[InboxZero] Extension installed. Setting defaults...');
+chrome.runtime.onInstalled.addListener((details) => {
+  console.log('[InboxZero] Extension installed/updated. Setting defaults...');
+  // Always force-write defaults on install OR update so stale keys get fixed
   chrome.storage.sync.set({
     autoSummarize: true,
-    autoCategory: true,
+    autoCategorize: true,
     spamAlerts: true,
     spamThreshold: 60,
     templates: [
@@ -115,4 +116,17 @@ chrome.runtime.onInstalled.addListener(() => {
     ]
   });
   chrome.storage.local.set({ emailsAnalyzed: 0, spamDetected: 0, lastReset: Date.now() });
+});
+// Re-apply defaults on every browser startup in case storage is missing keys
+// (onInstalled only fires once so existing installs may have stale/missing keys)
+chrome.runtime.onStartup.addListener(() => {
+  chrome.storage.sync.get(['autoSummarize', 'autoCategorize', 'spamAlerts'], (data) => {
+    const updates = {};
+    if (typeof data.autoSummarize !== 'boolean') updates.autoSummarize = true;
+    if (typeof data.autoCategorize !== 'boolean') updates.autoCategorize = true;
+    if (typeof data.spamAlerts !== 'boolean') updates.spamAlerts = true;
+    if (Object.keys(updates).length > 0) {
+      chrome.storage.sync.set(updates);
+    }
+  });
 });

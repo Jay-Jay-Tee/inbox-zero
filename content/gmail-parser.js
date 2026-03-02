@@ -1,4 +1,4 @@
-const SUBJECT_SELECTORS = ["h2.hP", "h2[data-thread-perm-id]"];
+const SUBJECT_SELECTORS = ["h2.hP", "h2[data-thread-perm-id]", ".hP", "[data-legacy-thread-id] h2", "h2"];
 const BODY_SELECTORS = [".a3s.aiL", ".a3s", ".ii.gt .a3s", "div[data-message-id] .a3s", ".gmail_quote", ".nH .a3s"];
 const SENDER_SELECTORS = [
   "span[email]",
@@ -6,7 +6,7 @@ const SENDER_SELECTORS = [
   ".go span[email]",
   ".go .gD"
 ];
-const TOOLBAR_SELECTOR = ".G-atb";
+const TOOLBAR_SELECTOR = ".G-atb, .iH, [gh=tm]";
 const COMPOSE_BODY_SELECTOR = ".Am.Al.editable";
 const COMPOSE_TOOLBAR_SELECTOR = ".aoD.hl, .btC, .gU.Up";
 
@@ -33,7 +33,7 @@ function extractEmailData() {
     normalizeText(senderElement?.getAttribute("email") || "") ||
     normalizeText(senderElement?.innerText || senderElement?.textContent || "");
 
-  const isOpenEmailView = Boolean(subjectElement && bodyElement);
+  const isOpenEmailView = Boolean(subjectElement || bodyElement); // either is enough
 
   return {
     subject,

@@ -170,25 +170,44 @@
     });
   }
 
+  let isInjecting = false;
+  let observer = null;
+
   function injectIfReady() {
-    const emailData = getCurrentEmailContext();
-    const toolbar = getEmailToolbar();
-    const composeToolbar = getComposeToolbar();
+    // Prevent re-entrant calls that cause infinite mutation loops
+    if (isInjecting) return;
+    isInjecting = true;
 
-    if (toolbar && emailData.isOpenEmailView) {
-      ensureActionButtons(toolbar, {
-        onSummarizeClick,
-        onCategorizeClick,
-        onSpamCheckClick
-      }, {
-        summarize: featureToggles.summarize,
-        categorize: featureToggles.categorize,
-        spamCheck: featureToggles.spamCheck
-      });
-    }
+    try {
+      const allOff = !featureToggles.summarize && !featureToggles.categorize && !featureToggles.spamCheck;
 
-    if (composeToolbar) {
-      ensureTemplateButton(composeToolbar, onTemplatesClick);
+      const emailData = getCurrentEmailContext();
+      const toolbar = getEmailToolbar();
+      const composeToolbar = getComposeToolbar();
+
+      if (toolbar) {
+        if (allOff) {
+          // Remove the whole button container when everything is disabled
+          const container = toolbar.querySelector("#inboxzero-ai-action-buttons");
+          if (container) container.remove();
+        } else if (emailData.isOpenEmailView) {
+          ensureActionButtons(toolbar, {
+            onSummarizeClick,
+            onCategorizeClick,
+            onSpamCheckClick
+          }, {
+            summarize: featureToggles.summarize,
+            categorize: featureToggles.categorize,
+            spamCheck: featureToggles.spamCheck
+          });
+        }
+      }
+
+      if (composeToolbar) {
+        ensureTemplateButton(composeToolbar, onTemplatesClick);
+      }
+    } finally {
+      isInjecting = false;
     }
   }
 
@@ -257,10 +276,11 @@
     injectIfReady();
   });
 
-  const observer = new MutationObserver(() => {
+  observer = new MutationObserver(() => {
     injectIfReady();
   });
 
+  // Initial observe — injectIfReady will disconnect/reconnect this around DOM changes
   observer.observe(document.body, {
     childList: true,
     subtree: true
