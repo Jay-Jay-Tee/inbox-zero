@@ -171,6 +171,8 @@
       const body = template?.body || "";
       if (!body) return;
       composeBody.focus();
+      // Replace existing draft content with the chosen template
+      document.execCommand("selectAll", false, null);
       document.execCommand("insertText", false, body);
     });
   }
@@ -245,6 +247,18 @@
   // -------------------------------------------------------
   chrome.runtime.onMessage.addListener((message) => {
     if (!message || typeof message !== "object") return;
+
+    // Templates can be inserted from the popup ("Recent Templates") as well.
+    if (message.type === "INSERT_TEMPLATE") {
+      const composeBody = getComposeBody();
+      const body = String(message.body || "");
+      if (!composeBody || !body) return;
+      composeBody.focus();
+      document.execCommand("selectAll", false, null);
+      document.execCommand("insertText", false, body);
+      return;
+    }
+
     const emailData = getCurrentEmailContext();
     const root = ensureResultRoot(emailData.subjectElement, emailData.bodyElement);
     if (message.type === "SUMMARY_RESULT" && featureToggles.summarize)

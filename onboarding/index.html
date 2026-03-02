@@ -2,88 +2,95 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>InboxZero AI – Getting Started</title>
+  <title>InboxZero AI – Setup</title>
   <link rel="stylesheet" href="onboarding.css">
 </head>
 <body>
   <div class="page">
     <header class="hero">
-      <div class="hero-badge">Welcome</div>
-      <h1>Set up InboxZero AI</h1>
-      <p class="hero-sub">
-        Two quick steps to connect your own Gemini API key and unlock AI summaries,
-        smart spam detection, and your inbox dashboard.
-      </p>
+      <div class="hero-top">
+        <div class="hero-badge">Setup</div>
+        <div id="progressPill" class="pill">0 / 2 complete</div>
+      </div>
+      <h1>InboxZero AI setup</h1>
+      <p class="hero-sub">Finish these two checks once. After that, everything just works.</p>
     </header>
 
     <main>
-      <section class="card">
-        <h2>Step 1 – Create a Gemini API key</h2>
-        <ol class="steps">
-          <li>
-            Go to
-            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">
-              Google AI Studio – API Keys
-            </a>.
-          </li>
-          <li>
-            Sign in with the same Google account you use for Gmail.
-          </li>
-          <li>
-            Click <strong>“Create API key”</strong> and copy the key that is shown.
-          </li>
-        </ol>
-        <p class="hint">
-          Keep this key secret. It lives only in your browser via Chrome’s extension storage.
-        </p>
-      </section>
-
-      <section class="card">
-        <h2>Step 2 – Paste the key into the extension</h2>
-        <ol class="steps">
-          <li>
-            In Chrome, click the <strong>Extensions</strong> icon in the toolbar and pin
-            <strong>InboxZero AI</strong> if it isn’t already.
-          </li>
-          <li>
-            Click the <strong>InboxZero AI</strong> icon to open the popup.
-          </li>
-          <li>
-            In the <strong>“Enter API Key”</strong> area at the bottom:
-            <ul>
-              <li>Paste your Gemini key into the input box.</li>
-              <li>Click the <strong>✓</strong> button to save it.</li>
-              <li>The key display will turn green once saved successfully.</li>
-            </ul>
-          </li>
-        </ol>
-        <p class="hint">
-          You can change or remove the key any time from the popup.
-        </p>
-      </section>
-
-      <section class="card">
-        <h2>What you can do now</h2>
-        <ul class="feature-list">
-          <li><strong>Summarize today’s emails</strong> from the popup dashboard.</li>
-          <li><strong>Archive newsletters</strong> and clean noise in a click.</li>
-          <li><strong>See real metrics</strong> on spam caught, time saved, and weekly volume.</li>
-          <li><strong>Get per‑email AI summaries, categories, and spam scores</strong> inside Gmail.</li>
-        </ul>
-      </section>
-
-      <section class="card card-inline">
-        <div>
-          <h2>You’re ready to go</h2>
-          <p class="hero-sub">
-            Once your Gemini key is saved, open Gmail and look for the InboxZero AI buttons
-            above any email, plus the new dashboard in the popup.
-          </p>
+      <section id="stepOAuth" class="card step-card">
+        <div class="step-head">
+          <div>
+            <div class="step-kicker">Step 1</div>
+            <h2>Connect Gmail (OAuth)</h2>
+          </div>
+          <div id="statusOAuth" class="status pending">Not verified</div>
         </div>
-        <div class="cta">
-          <a href="https://mail.google.com/" target="_blank" rel="noreferrer" class="cta-btn">
-            Open Gmail
-          </a>
+
+        <p class="subtle">
+          This enables dashboard stats + one‑click actions. It uses your Google account permission prompt.
+        </p>
+
+        <details class="details" open>
+          <summary>Show me the setup steps</summary>
+          <ol class="steps">
+            <li>Create a project in Google Cloud Console.</li>
+            <li>Enable <strong>Gmail API</strong>.</li>
+            <li>Configure the <strong>OAuth consent screen</strong> (External + add yourself as a Test user).</li>
+            <li>Create OAuth client ID of type <strong>Chrome Extension</strong>.</li>
+            <li>For <strong>Item ID</strong>, paste your extension ID from <code>chrome://extensions</code>.</li>
+            <li>Paste the OAuth <strong>Client ID</strong> into <code>manifest.json</code> under <code>oauth2.client_id</code>.</li>
+            <li>Reload the extension on <code>chrome://extensions</code>.</li>
+          </ol>
+          <p class="hint">
+            If you see <em>“bad client id”</em>, the client is tied to a different extension ID.
+          </p>
+        </details>
+
+        <div class="actions">
+          <button id="btnTestOAuth" class="btn primary">Test Gmail connection</button>
+          <button id="btnOpenExtensions" class="btn">Open chrome://extensions</button>
+        </div>
+        <div id="msgOAuth" class="msg"></div>
+      </section>
+
+      <section id="stepGemini" class="card step-card disabled">
+        <div class="step-head">
+          <div>
+            <div class="step-kicker">Step 2</div>
+            <h2>Add your Gemini API key</h2>
+          </div>
+          <div id="statusGemini" class="status pending">Not verified</div>
+        </div>
+
+        <p class="subtle">
+          This is required for AI summaries and classification. The key is stored in Chrome sync storage.
+        </p>
+
+        <div class="input-row">
+          <input id="geminiKeyInput" class="text-input" placeholder="Paste Gemini API key here">
+          <button id="btnSaveGeminiKey" class="btn">Save</button>
+        </div>
+
+        <div class="actions">
+          <a class="btn link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">Get a Gemini key</a>
+          <button id="btnTestGemini" class="btn primary">Verify key works</button>
+        </div>
+        <div id="msgGemini" class="msg"></div>
+      </section>
+
+      <section id="doneCard" class="card done-card hidden">
+        <div class="done-top">
+          <div class="status success">All set</div>
+          <div class="pill">2 / 2 complete</div>
+        </div>
+        <h2>Setup complete</h2>
+        <p class="subtle">You can close this tab. Open Gmail and use the buttons on any email.</p>
+        <div class="actions">
+          <a href="https://mail.google.com/" target="_blank" rel="noreferrer" class="btn primary">Open Gmail</a>
+          <button id="btnOpenPopupHint" class="btn">Open extension popup</button>
+        </div>
+        <div class="hint">
+          Tip: pin the extension so the dashboard is one click away.
         </div>
       </section>
     </main>
@@ -91,9 +98,11 @@
     <footer class="footer">
       <span>InboxZero AI</span>
       <span class="dot">•</span>
-      <span>Built for fewer clicks and calmer inboxes.</span>
+      <span>Setup runs locally in your browser.</span>
     </footer>
   </div>
+
+  <script src="onboarding.js"></script>
 </body>
 </html>
 
