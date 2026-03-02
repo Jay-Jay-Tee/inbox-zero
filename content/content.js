@@ -11,6 +11,7 @@
 
   const {
     ensureActionButtons,
+    removeActionButtons,
     ensureTemplateButton,
     ensureResultRoot,
     renderSummary,
@@ -69,15 +70,34 @@
     return data;
   }
 
+  function isExtensionAlive() {
+    try {
+      return !!chrome.runtime?.id;
+    } catch {
+      return false;
+    }
+  }
+
   function sendMessage(message) {
     return new Promise((resolve) => {
-      chrome.runtime.sendMessage(message, (response) => {
-        if (chrome.runtime.lastError) {
-          resolve({ error: chrome.runtime.lastError.message });
-          return;
-        }
-        resolve(response || {});
-      });
+      if (!isExtensionAlive()) {
+        // Extension was reloaded — stop all timers and observers silently
+        clearTimeout(window.__inboxzeroTimer);
+        observer?.disconnect();
+        resolve({ error: "Extension context invalidated. Please refresh the page." });
+        return;
+      }
+      try {
+        chrome.runtime.sendMessage(message, (response) => {
+          if (chrome.runtime.lastError) {
+            resolve({ error: chrome.runtime.lastError.message });
+            return;
+          }
+          resolve(response || {});
+        });
+      } catch {
+        resolve({ error: "Extension context invalidated." });
+      }
     });
   }
 
@@ -173,6 +193,15 @@
   let isInjecting = false;
   let observer = null;
 
+  function isEmailOpen() {
+    // Gmail URLs for open emails look like #inbox/1234abc or #all/1234abc
+    // Inbox list is just #inbox or #search/foo — no message ID after the slash
+    const hash = window.location.hash;
+    const parts = hash.replace('#', '').split('/');
+    // An open email has at least 2 parts and the second part is a message/thread ID
+    return parts.length >= 2 && parts[1].length > 6;
+  }
+
   function injectIfReady() {
     // Prevent re-entrant calls that cause infinite mutation loops
     if (isInjecting) return;
@@ -180,17 +209,19 @@
 
     try {
       const allOff = !featureToggles.summarize && !featureToggles.categorize && !featureToggles.spamCheck;
+      const emailOpen = isEmailOpen();
 
       const emailData = getCurrentEmailContext();
       const toolbar = getEmailToolbar();
       const composeToolbar = getComposeToolbar();
 
+      // Always clean up stale buttons from anywhere in the doc first
+      if (allOff || !emailOpen) {
+        document.querySelectorAll("#inboxzero-ai-action-buttons").forEach(el => el.remove());
+      }
+
       if (toolbar) {
-        if (allOff) {
-          // Remove the whole button container when everything is disabled
-          const container = toolbar.querySelector("#inboxzero-ai-action-buttons");
-          if (container) container.remove();
-        } else if (emailData.isOpenEmailView) {
+        if (!allOff && emailOpen && emailData.isOpenEmailView) {
           ensureActionButtons(toolbar, {
             onSummarizeClick,
             onCategorizeClick,
@@ -277,7 +308,9 @@
   });
 
   observer = new MutationObserver(() => {
-    injectIfReady();
+    // Debounce — wait for Gmail's DOM to settle before checking
+    clearTimeout(window.__inboxzeroTimer);
+    window.__inboxzeroTimer = setTimeout(injectIfReady, 300);
   });
 
   // Initial observe — injectIfReady will disconnect/reconnect this around DOM changes

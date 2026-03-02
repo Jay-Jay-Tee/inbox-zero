@@ -19,24 +19,40 @@ function createButton(label, action) {
   button.style.background = "#fff";
   button.style.cursor = "pointer";
   button.style.fontSize = "12px";
-  // Fix: ensure buttons are above Gmail's overlay divs
   button.style.position = "relative";
   button.style.zIndex = "9999";
   button.style.pointerEvents = "all";
   return button;
 }
 
-// Removes ALL injected elements from the page (called on unload/disable)
-function cleanupAllInjectedElements() {
-  document.querySelectorAll(
-    `#${ACTION_CONTAINER_ID}, #${ROOT_ID}, #${TEMPLATE_PICKER_ID}`
-  ).forEach(el => el.remove());
+function createDismissButton(onDismiss) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = "✕";
+  btn.style.cssText = `
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: #888;
+    line-height: 1;
+    padding: 0;
+    z-index: 1;
+  `;
+  btn.addEventListener("mouseenter", () => btn.style.color = "#333");
+  btn.addEventListener("mouseleave", () => btn.style.color = "#888");
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    onDismiss();
+  });
+  return btn;
 }
 
 function ensureActionButtons(toolbar, handlers, enabledFeatures = {}) {
-  if (!toolbar) {
-    return;
-  }
+  if (!toolbar) return;
 
   let container = toolbar.querySelector(`#${ACTION_CONTAINER_ID}`);
   if (!container) {
@@ -74,14 +90,16 @@ function ensureActionButtons(toolbar, handlers, enabledFeatures = {}) {
   }
 }
 
-function ensureTemplateButton(composeToolbar, onTemplatesClick) {
-  if (!composeToolbar) {
-    return;
-  }
+// Remove buttons when not in email view
+function removeActionButtons(toolbar) {
+  if (!toolbar) return;
+  const container = toolbar.querySelector(`#${ACTION_CONTAINER_ID}`);
+  if (container) container.remove();
+}
 
-  if (composeToolbar.querySelector('[data-inboxzero-action="templates"]')) {
-    return;
-  }
+function ensureTemplateButton(composeToolbar, onTemplatesClick) {
+  if (!composeToolbar) return;
+  if (composeToolbar.querySelector('[data-inboxzero-action="templates"]')) return;
 
   const templatesBtn = createButton("Templates", "templates");
   templatesBtn.addEventListener("click", onTemplatesClick);
@@ -89,15 +107,11 @@ function ensureTemplateButton(composeToolbar, onTemplatesClick) {
 }
 
 function ensureResultRoot(subjectElement, bodyElement) {
-  if (!subjectElement && !bodyElement) {
-    return null;
-  }
+  if (!subjectElement && !bodyElement) return null;
 
   const anchor = subjectElement || bodyElement;
   const emailContainer = anchor.closest(".ii.gt") || anchor.parentElement;
-  if (!emailContainer) {
-    return null;
-  }
+  if (!emailContainer) return null;
 
   let root = emailContainer.querySelector(`#${ROOT_ID}`);
   if (!root) {
@@ -113,90 +127,114 @@ function ensureResultRoot(subjectElement, bodyElement) {
 }
 
 function renderSummary(root, bullets) {
-  if (!root) {
-    return;
-  }
+  if (!root) return;
 
   let summary = root.querySelector(`#${SUMMARY_ID}`);
   if (!summary) {
     summary = document.createElement("div");
     summary.id = SUMMARY_ID;
-    summary.style.background = "#e8f0fe";
-    summary.style.border = "1px solid #c6dafc";
-    summary.style.padding = "8px 10px";
-    summary.style.borderRadius = "8px";
+    summary.style.cssText = `
+      background: #e8f0fe;
+      border: 1px solid #c6dafc;
+      padding: 8px 32px 8px 10px;
+      border-radius: 8px;
+      position: relative;
+    `;
+    summary.appendChild(createDismissButton(() => summary.remove()));
     root.appendChild(summary);
   }
 
   const safeBullets = Array.isArray(bullets) ? bullets : [];
-  summary.innerHTML = `<strong>AI Summary</strong><ul style="margin:6px 0 0 16px;">${safeBullets
-    .map((bullet) => `<li>${String(bullet)}</li>`)
+  // Update content but keep the dismiss button
+  const existing = summary.querySelector("div.inboxzero-content");
+  const content = existing || document.createElement("div");
+  content.className = "inboxzero-content";
+  content.innerHTML = `<strong>AI Summary</strong><ul style="margin:6px 0 0 16px;">${safeBullets
+    .map((b) => `<li>${String(b)}</li>`)
     .join("")}</ul>`;
+  if (!existing) summary.insertBefore(content, summary.firstChild);
 }
 
 function renderCategory(root, category) {
-  if (!root) {
-    return;
-  }
+  if (!root) return;
 
   let badge = root.querySelector(`#${CATEGORY_ID}`);
   if (!badge) {
     badge = document.createElement("div");
     badge.id = CATEGORY_ID;
-    badge.style.display = "inline-block";
-    badge.style.padding = "4px 8px";
-    badge.style.borderRadius = "999px";
-    badge.style.background = "#f1f3f4";
-    badge.style.fontSize = "12px";
+    badge.style.cssText = `
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #f1f3f4;
+      font-size: 12px;
+      position: relative;
+    `;
     root.appendChild(badge);
   }
 
-  badge.textContent = `Category: ${category || "Unknown"}`;
+  const label = badge.querySelector(".inboxzero-cat-label") || document.createElement("span");
+  label.className = "inboxzero-cat-label";
+  label.textContent = `Category: ${category || "Unknown"}`;
+  if (!badge.contains(label)) badge.appendChild(label);
+
+  // Add dismiss if not already there
+  if (!badge.querySelector(".inboxzero-dismiss")) {
+    const x = createDismissButton(() => badge.remove());
+    x.style.position = "static";
+    x.className = "inboxzero-dismiss";
+    badge.appendChild(x);
+  }
 }
 
 function renderSpamWarning(root, spamResult) {
-  if (!root) {
-    return;
-  }
+  if (!root) return;
 
   let banner = root.querySelector(`#${SPAM_ID}`);
   if (!banner) {
     banner = document.createElement("div");
     banner.id = SPAM_ID;
-    banner.style.padding = "8px 10px";
-    banner.style.borderRadius = "8px";
-    banner.style.fontSize = "12px";
+    banner.style.cssText = `
+      padding: 8px 32px 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      position: relative;
+    `;
+    banner.appendChild(createDismissButton(() => banner.remove()));
     root.appendChild(banner);
   }
 
   const score = Number(spamResult?.score ?? 0);
   const flags = Array.isArray(spamResult?.flags) ? spamResult.flags : [];
 
+  const content = banner.querySelector(".inboxzero-content") || document.createElement("span");
+  content.className = "inboxzero-content";
+
   if (score >= 60 || flags.length > 0) {
     banner.style.background = "#fce8e6";
     banner.style.border = "1px solid #f5c6cb";
     banner.style.color = "#b3261e";
-    banner.textContent = `Spam warning (score ${score})${flags.length ? `: ${flags.join(", ")}` : ""}`;
+    content.textContent = `⚠️ Spam warning (score ${score})${flags.length ? `: ${flags.join(", ")}` : ""}`;
   } else {
     banner.style.background = "#e6f4ea";
     banner.style.border = "1px solid #c7e6ce";
     banner.style.color = "#137333";
-    banner.textContent = `Spam check passed (score ${score})`;
+    content.textContent = `✓ Spam check passed (score ${score})`;
   }
+
+  if (!banner.contains(content)) banner.insertBefore(content, banner.firstChild);
 }
 
 function removeTemplatePicker(composeToolbar) {
   const scope = composeToolbar || document;
   const picker = scope.querySelector(`#${TEMPLATE_PICKER_ID}`);
-  if (picker) {
-    picker.remove();
-  }
+  if (picker) picker.remove();
 }
 
 function renderTemplatePicker(composeToolbar, templates, onSelectTemplate) {
-  if (!composeToolbar) {
-    return;
-  }
+  if (!composeToolbar) return;
 
   removeTemplatePicker(composeToolbar);
 
@@ -219,21 +257,25 @@ function renderTemplatePicker(composeToolbar, templates, onSelectTemplate) {
 
   picker.addEventListener("change", () => {
     const idx = Number(picker.value);
-    if (Number.isNaN(idx)) {
-      return;
-    }
+    if (Number.isNaN(idx)) return;
     const selected = templates?.[idx];
-    if (selected) {
-      onSelectTemplate(selected);
-    }
+    if (selected) onSelectTemplate(selected);
     picker.value = "";
   });
 
   composeToolbar.appendChild(picker);
 }
 
+// Removes ALL injected elements from the page (called on unload/disable)
+function cleanupAllInjectedElements() {
+  document.querySelectorAll(
+    `#${ACTION_CONTAINER_ID}, #${ROOT_ID}, #${TEMPLATE_PICKER_ID}`
+  ).forEach(el => el.remove());
+}
+
 export {
   ensureActionButtons,
+  removeActionButtons,
   ensureTemplateButton,
   ensureResultRoot,
   renderSummary,
