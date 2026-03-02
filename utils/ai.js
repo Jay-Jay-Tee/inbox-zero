@@ -28,7 +28,7 @@ async function getApiKey() {
 // -------------------------------------------------------
 // Core Gemini call — used by all features
 // -------------------------------------------------------
-async function callGemini(prompt) {
+async function callGemini(prompt, overrides = {}) {
   const apiKey = await getApiKey();
 
   const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
@@ -37,15 +37,21 @@ async function callGemini(prompt) {
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.3,      // low temp = consistent, predictable output
-        maxOutputTokens: 300,  // keep responses short and fast
+        temperature: 0.3,
+        maxOutputTokens: 300,
+        ...overrides,
       }
     })
   });
 
   if (!response.ok) {
-    const err = await response.json();
-    const msg = err?.error?.message || `API error ${response.status}`;
+    let msg = `API error ${response.status}`;
+    try {
+      const err = await response.json();
+      msg = err?.error?.message || msg;
+    } catch {
+      // ignore parse failure
+    }
     throw new Error(msg);
   }
 
@@ -55,8 +61,12 @@ async function callGemini(prompt) {
     throw new Error('No response from Gemini');
   }
 
-  return data.candidates[0].content.parts[0].text.trim();
+  const part = data.candidates[0]?.content?.parts?.[0];
+  const text = typeof part?.text === 'string' ? part.text.trim() : '';
+  if (!text) throw new Error('Empty response from Gemini');
+  return text;
 }
+
 
 // -------------------------------------------------------
 // SUMMARIZER
@@ -130,4 +140,139 @@ Reply with ONLY ONE WORD — the category name. Nothing else.`;
   const found = validCategories.find(c => raw.toLowerCase().includes(c.toLowerCase()));
 
   return { category: found || 'Personal' };
+}
+
+// -------------------------------------------------------
+// LLM SPAM ANALYZER
+// Returns: { score: 0-100, level, flags[], reasoning }
+// -------------------------------------------------------
+export async function spamAnalyzeEmail({ subject = '', senderEmail = '', bodyText = '' }) {
+  const trimmed = (subject + '\n' + bodyText).trim();
+  if (!trimmed) {
+    return {
+      score: 0,
+      level: 'safe',
+      flags: [],
+      reasoning: 'No content to analyze.',
+    };
+  }
+
+  const truncated = bodyText.slice(0, 2500);
+
+  const prompt = `You are an email security assistant.
+Evaluate the following email for spam / phishing risk.
+
+Return a STRICT JSON object with this exact shape and nothing else:
+{
+  "score": number between 0 and 100,
+  "level": "safe" | "suspicious" | "danger",
+  "flags": ["short reason", "another reason"],
+  "reasoning": "1-2 sentence human explanation"
+}
+
+Sender: ${senderEmail || 'unknown'}
+Subject: ${subject || 'No subject'}
+Body:
+${truncated}`;
+
+  const raw = await callGemini(prompt, { maxOutputTokens: 200 });
+
+  let parsed;
+  try {
+    const jsonStart = raw.indexOf('{');
+    const jsonEnd = raw.lastIndexOf('}');
+    const candidate = jsonStart >= 0 && jsonEnd > jsonStart ? raw.slice(jsonStart, jsonEnd + 1) : raw;
+    parsed = JSON.parse(candidate);
+  } catch {
+    return {
+      score: 0,
+      level: 'safe',
+      flags: [],
+      reasoning: 'Could not parse AI spam verdict.',
+    };
+  }
+
+  const score = Math.max(0, Math.min(100, Number(parsed.score) || 0));
+  const level = ['safe', 'suspicious', 'danger'].includes(parsed.level) ? parsed.level : 'safe';
+  const flags = Array.isArray(parsed.flags) ? parsed.flags.map(String).slice(0, 6) : [];
+  const reasoning = typeof parsed.reasoning === 'string' ? parsed.reasoning : '';
+
+  return { score, level, flags, reasoning };
+}
+
+// -------------------------------------------------------
+// IMPORTANCE CHECKER
+// Returns: { isImportant: bool, reason: string }
+// -------------------------------------------------------
+export async function checkImportance(emailText, senderEmail = '', subject = '') {
+  const trimmed = (subject + '\n' + emailText).trim();
+  if (!trimmed) {
+    return { isImportant: false, reason: '' };
+  }
+
+  const truncated = emailText.slice(0, 2500);
+
+  const prompt = `Decide if this email is important and requires attention from the user.
+Be strict. Mark as important only if at least one of these applies:
+- contains deadlines, meetings, schedules or calendar-related info
+- contains tasks, approvals, decisions or asks the user to do something
+- is from a manager, direct report, key client, or critical service (bank, payments, security, infra)
+
+Reply with STRICT JSON only, no prose:
+{
+  "isImportant": true or false,
+  "reason": "one short human sentence"
+}
+
+Sender: ${senderEmail || 'unknown'}
+Subject: ${subject || 'No subject'}
+Body:
+${truncated}`;
+
+  const raw = await callGemini(prompt, { maxOutputTokens: 160 });
+
+  try {
+    const jsonStart = raw.indexOf('{');
+    const jsonEnd = raw.lastIndexOf('}');
+    const candidate = jsonStart >= 0 && jsonEnd > jsonStart ? raw.slice(jsonStart, jsonEnd + 1) : raw;
+    const parsed = JSON.parse(candidate);
+    return {
+      isImportant: Boolean(parsed.isImportant),
+      reason: typeof parsed.reason === 'string' ? parsed.reason : '',
+    };
+  } catch {
+    return { isImportant: false, reason: '' };
+  }
+}
+
+// -------------------------------------------------------
+// DAILY DIGEST SUMMARY (for dashboard "here's what you missed")
+// Input: array of { subject, from, snippet }
+// Returns: { digest: string }
+// -------------------------------------------------------
+export async function summarizeDigest(emailsMeta) {
+  if (!Array.isArray(emailsMeta) || emailsMeta.length === 0) {
+    return { digest: 'No recent emails to summarize.' };
+  }
+
+  const lines = emailsMeta.slice(0, 30).map((m, idx) => {
+    return `${idx + 1}. From: ${m.from || 'unknown'} | Subject: ${m.subject || 'No subject'} | Snippet: ${m.snippet || ''}`;
+  });
+
+  const prompt = `You are a productivity assistant.
+Create a tight digest titled "Here's what you missed today" based on this list of recent emails.
+
+Output MUST follow this exact structure in plain text:
+LINE 1: 3-line digest (overall summary, <= 40 words total)
+LINE 2: "Key decisions:" then 2-3 short bullet-like phrases separated by " | "
+LINE 3: "Meetings:" then 0-3 short phrases (or "None")
+LINE 4: "Deadlines:" then 0-3 short phrases (or "None")
+Nothing else before or after these 4 lines.
+
+Emails:
+${lines.join('\n')}`;
+
+  const raw = await callGemini(prompt, { maxOutputTokens: 220 });
+  const digest = raw.split('\n').slice(0, 6).join('\n').trim();
+  return { digest: digest || 'Could not generate digest.' };
 }

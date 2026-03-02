@@ -57,10 +57,47 @@
             </div>
         </div>
 
-        <!-- STATS -->
+        <!-- STATS / DASHBOARD -->
         <div class="section">
-            <h2>Stats</h2>
-            <div class="placeholder">Inbox analytics will appear here</div>
+            <h2>Inbox Dashboard</h2>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Emails processed</div>
+                    <div id="metricEmailsProcessed" class="metric-value">--</div>
+                    <div id="metricAutoHandled" class="metric-sub">--% auto‑handled</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">This week</div>
+                    <div id="metricWeekReceived" class="metric-value">-- received</div>
+                    <div id="metricWeekSent" class="metric-sub">-- sent</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Noise handled</div>
+                    <div id="metricSpam" class="metric-value">-- spam</div>
+                    <div id="metricTrash" class="metric-sub">-- moved to trash</div>
+                </div>
+            </div>
+
+            <div class="ai-panel">
+                <div class="ai-panel-header">
+                    <span class="ai-title">Here’s what you missed today</span>
+                    <span id="aiSummaryStatus" class="ai-status">Idle</span>
+                </div>
+                <div id="aiSummaryBody" class="ai-body">
+                    Click “Summarize today’s emails” below to generate a digest.
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <button id="actionArchiveNewsletters" class="qa-btn">Archive all newsletters</button>
+                <button id="actionSummarizeToday" class="qa-btn primary">Summarize today’s emails</button>
+                <button id="actionShowUrgent" class="qa-btn">Show only urgent</button>
+                <button id="actionAutoUnsub" class="qa-btn">Auto‑unsubscribe suggestions</button>
+                <button id="actionAutoDeleteOld" class="qa-btn">Auto‑delete old irrelevant</button>
+            </div>
+
+            <div id="dashboardStatus" class="dashboard-status"></div>
         </div>
 
         <!-- API -->
