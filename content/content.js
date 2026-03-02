@@ -86,12 +86,15 @@
     }
 
     const emailData = getCurrentEmailContext();
-    if (!emailData.emailText) {
+    // Fallback to lastContext if current extraction missed the body
+    const text = emailData.bodyText || emailData.emailText || lastContext.bodyText || lastContext.emailText;
+    if (!text) {
+      const root = ensureResultRoot(emailData.subjectElement, emailData.bodyElement);
+      if (root) renderSummary(root, ["Could not read email content. Try clicking inside the email first."]);
       return;
     }
 
-    await sendMessage({ type: "EMAIL_CONTEXT", emailText: emailData.emailText });
-    const response = await sendMessage({ type: "SUMMARIZE", text: emailData.bodyText || emailData.emailText });
+    const response = await sendMessage({ type: "SUMMARIZE", text: text });
     const root = ensureResultRoot(emailData.subjectElement, emailData.bodyElement);
 
     if (response?.bullets) {
@@ -99,7 +102,9 @@
       return;
     }
 
-    renderSummary(root, ["Unable to summarize this email right now."]);
+    const errorMsg = response?.error || "Unable to summarize this email right now.";
+    const isNoKey = errorMsg.includes("NO_API_KEY");
+    renderSummary(root, [isNoKey ? "⚠️ No API key set. Open the extension popup and save your Gemini API key." : `Error: ${errorMsg}`]);
   }
 
   async function onCategorizeClick() {
@@ -112,7 +117,6 @@
       return;
     }
 
-    await sendMessage({ type: "EMAIL_CONTEXT", emailText: emailData.emailText });
     const response = await sendMessage({ type: "CATEGORIZE", text: emailData.bodyText || emailData.emailText });
     const root = ensureResultRoot(emailData.subjectElement, emailData.bodyElement);
     renderCategory(root, response?.category || "Unknown");
@@ -128,7 +132,6 @@
       return;
     }
 
-    await sendMessage({ type: "EMAIL_CONTEXT", emailText: emailData.emailText });
     const response = await sendMessage({
       type: "SPAM_CHECK",
       sender: emailData.sender,

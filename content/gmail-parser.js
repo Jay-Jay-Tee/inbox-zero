@@ -1,5 +1,5 @@
 const SUBJECT_SELECTORS = ["h2.hP", "h2[data-thread-perm-id]"];
-const BODY_SELECTORS = [".a3s.aiL", ".a3s"]; 
+const BODY_SELECTORS = [".a3s.aiL", ".a3s", ".ii.gt .a3s", "div[data-message-id] .a3s", ".gmail_quote", ".nH .a3s"];
 const SENDER_SELECTORS = [
   "span[email]",
   ".gD[email]",
