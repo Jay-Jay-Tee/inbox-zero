@@ -1,16 +1,42 @@
 document.addEventListener("DOMContentLoaded", () => {
+    initApiKeyUI();
+    initToggles();
+    initTemplates();
+});
 
-    /* ---------------- API KEY UI ---------------- */
+/* =====================================================
+   STORAGE HELPERS
+===================================================== */
 
-    const wrap = document.getElementById("wrap");
+function getStorage(keys) {
+    return new Promise((resolve) => {
+        chrome.storage.sync.get(keys, (res) => {
+            resolve(res || {});
+        });
+    });
+}
+
+function setStorage(data) {
+    return new Promise((resolve) => {
+        chrome.storage.sync.set(data, () => {
+            resolve();
+        });
+    });
+}
+
+/* =====================================================
+   API KEY SECTION
+===================================================== */
+
+function initApiKeyUI() {
     const apiInput = document.getElementById("apiInput");
     const saveKeyBtn = document.getElementById("saveKey");
     const keyDisplay = document.getElementById("keyDisplay");
-
     const keyContainer = document.getElementById("keyContainer");
 
+    if ( !apiInput || !saveKeyBtn || !keyDisplay || !keyContainer) return;
+
     keyContainer.addEventListener("click", () => {
-        wrap.style.display = "flex";
         apiInput.focus();
     });
 
@@ -23,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (key.length < 8) {
             keyDisplay.textContent = "Key saved";
+            keyDisplay.style.color = "#4ade80";
             return;
         }
 
@@ -35,55 +62,56 @@ document.addEventListener("DOMContentLoaded", () => {
         keyDisplay.style.color = "#4ade80";
     }
 
-    if (saveKeyBtn) {
-        saveKeyBtn.onclick = () => {
-            const key = apiInput.value.trim();
-            if (!key) return;
+    saveKeyBtn.addEventListener("click", async () => {
+        const key = apiInput.value.trim();
+        if (!key) return;
 
-            chrome.storage.sync.set({ apiKey: key }, () => {
-                showKey(key);
-                apiInput.value = "";
-                wrap.style.display = "none";
-                btn.style.display = "block";
-            });
-        };
-    }
+        await setStorage({ apiKey: key });
+        showKey(key);
 
-    chrome.storage.sync.get(["apiKey"], res => {
-        if (res.apiKey) showKey(res.apiKey);
+        apiInput.value = "";
     });
 
+    getStorage(["apiKey"]).then((res) => {
+        showKey(res.apiKey);
+    });
+}
 
+/* =====================================================
+   TOGGLES
+===================================================== */
 
-    /* ---------------- TOGGLE PERSISTENCE ---------------- */
-
-    const toggles = [
+function initToggles() {
+    const toggleIds = [
         "toggleSummarize",
         "toggleCategorize",
         "toggleSpam"
     ];
 
-    chrome.storage.sync.get(toggles, data => {
-        toggles.forEach(id => {
+    getStorage(toggleIds).then((data) => {
+        toggleIds.forEach((id) => {
             const el = document.getElementById(id);
-            if (el && data[id] !== undefined)
+            if (el && data[id] !== undefined) {
                 el.checked = data[id];
+            }
         });
     });
 
-    toggles.forEach(id => {
+    toggleIds.forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
 
-        el.addEventListener("change", () => {
-            chrome.storage.sync.set({ [id]: el.checked });
+        el.addEventListener("change", async () => {
+            await setStorage({ [id]: el.checked });
         });
     });
+}
 
+/* =====================================================
+   TEMPLATE SYSTEM
+===================================================== */
 
-
-    /* ---------------- TEMPLATE SYSTEM ---------------- */
-
+function initTemplates() {
     const list = document.getElementById("templateList");
     const addBtn = document.getElementById("addTemplateBtn");
     const addWrap = document.getElementById("addTemplateWrap");
@@ -91,147 +119,103 @@ document.addEventListener("DOMContentLoaded", () => {
     const saveBtn = document.getElementById("saveTemplate");
     const cancelBtn = document.getElementById("cancelTemplate");
 
+    if (!list || !addBtn || !addWrap || !input || !saveBtn || !cancelBtn) return;
 
+    let templates = [];
 
-    function renderTemplates(arr) {
-
+    function render() {
         list.innerHTML = "";
 
-        if (!arr || arr.length === 0) {
+        if (!templates.length) {
             list.innerHTML = '<div class="no-templates">No templates :(</div>';
             return;
         }
 
-        arr.forEach((text, i) => {
-
+        templates.forEach((text, index) => {
             const box = document.createElement("div");
             box.className = "template-box";
             box.textContent = text;
             box.draggable = true;
-            box.dataset.index = i;
 
-
-
-            /* DELETE */
+            /* Delete */
             const del = document.createElement("span");
             del.className = "template-delete";
             del.textContent = "🗑";
 
-            del.onclick = (e) => {
+            del.addEventListener("click", async (e) => {
                 e.stopPropagation();
-                arr.splice(i, 1);
-                chrome.storage.sync.set({ templates: arr }, () => renderTemplates(arr));
-            };
+                templates.splice(index, 1);
+                await persist();
+            });
 
-
-
-            /* INSERT */
-            box.onclick = () => {
+            /* Insert */
+            box.addEventListener("click", () => {
                 chrome.runtime.sendMessage({
                     type: "INSERT_TEMPLATE",
-                    text: text
+                    text
                 });
-            };
-
-
-
-            /* DRAG START */
-            box.addEventListener("dragstart", e => {
-                box.classList.add("dragging");
-                e.dataTransfer.setData("index", box.dataset.index);
             });
 
-
-
-            /* DRAG END */
-            box.addEventListener("dragend", () => {
-                box.classList.remove("dragging");
+            /* Drag */
+            box.addEventListener("dragstart", (e) => {
+                e.dataTransfer.setData("index", index.toString());
             });
 
-
-
-            /* DRAG OVER */
-            box.addEventListener("dragover", e => {
+            box.addEventListener("dragover", (e) => {
                 e.preventDefault();
             });
 
-
-
-            /* DROP */
-            box.addEventListener("drop", e => {
+            box.addEventListener("drop", async (e) => {
                 e.preventDefault();
-
-                const from = +e.dataTransfer.getData("index");
-                const to = i;
-
+                const from = Number(e.dataTransfer.getData("index"));
+                const to = index;
                 if (from === to) return;
 
-                const moved = arr.splice(from, 1)[0];
-                arr.splice(to, 0, moved);
-
-                chrome.storage.sync.set({ templates: arr }, () => renderTemplates(arr));
+                const moved = templates.splice(from, 1)[0];
+                templates.splice(to, 0, moved);
+                await persist();
             });
-
-
 
             box.appendChild(del);
             list.appendChild(box);
         });
     }
 
+    async function persist() {
+        await setStorage({ templates });
+        render();
+    }
 
-
-    /* LOAD TEMPLATES */
-
-    chrome.storage.sync.get(["templates"], res => {
-        renderTemplates(res.templates || []);
+    /* Load */
+    getStorage(["templates"]).then((res) => {
+        templates = Array.isArray(res.templates) ? res.templates : [];
+        render();
     });
 
+    /* Open Add */
+    addBtn.addEventListener("click", () => {
+        addBtn.style.display = "none";
+        addWrap.style.display = "block";
+        input.focus();
+    });
 
+    /* Cancel */
+    cancelBtn.addEventListener("click", () => {
+        input.value = "";
+        addWrap.style.display = "none";
+        addBtn.style.display = "block";
+    });
 
-    /* OPEN ADD TEMPLATE */
+    /* Save */
+    saveBtn.addEventListener("click", async () => {
+        const val = input.value.trim();
+        if (!val) return;
 
-    if (addBtn) {
-        addBtn.onclick = () => {
-            addBtn.style.display = "none";
-            addWrap.style.display = "block";
-            input.focus();
-        };
-    }
+        templates.unshift(val);
+        await persist();
 
-
-
-    /* CANCEL ADD */
-
-    if (cancelBtn) {
-        cancelBtn.onclick = () => {
-            input.value = "";
-            addWrap.style.display = "none";
-            addBtn.style.display = "block";
-        };
-    }
-
-
-
-    /* SAVE TEMPLATE */
-
-    if (saveBtn) {
-        saveBtn.onclick = () => {
-            const val = input.value.trim();
-            if (!val) return;
-
-            chrome.storage.sync.get(["templates"], res => {
-                const arr = res.templates || [];
-                arr.unshift(val);
-
-                chrome.storage.sync.set({ templates: arr }, () => {
-                    renderTemplates(arr);
-                    input.value = "";
-                    addWrap.style.display = "none";
-                    addBtn.style.display = "block";
-                });
-            });
-        };
-    }
-
-});
+        input.value = "";
+        addWrap.style.display = "none";
+        addBtn.style.display = "block";
+    });
+}
