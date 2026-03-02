@@ -1,7 +1,114 @@
 # InboxZero AI
 
-> A Chrome extension designed to enhance your browsing experience and improve productivity.
+# 📬 InboxZero AI  
+### AI-Powered Gmail Intelligence Extension  
+Summarization • Categorization • Spam Scoring
 
+InboxZero AI is a Chrome Extension that enhances Gmail with real-time AI-powered summarization, strict email categorization, and a hybrid spam detection engine.
+
+It transforms cluttered inboxes into structured, readable, and safer communication streams — directly inside Gmail.
+
+---
+
+## ✨ Features
+
+### 🧠 AI Email Summarization
+- Generates **exactly 3 concise bullet points**
+- Each bullet under 12 words
+- Deterministic output (low temperature)
+- Long emails auto-truncated for performance
+- Powered by Gemini 2.5 Flash Lite
+
+---
+
+### 🏷 Strict AI Categorization
+
+Each email is classified into exactly one category:
+
+- Work  
+- Personal  
+- Promo  
+- Urgent  
+- Spam  
+
+The model is constrained to output one label only — eliminating ambiguity.
+
+---
+
+### 🛡 Hybrid Spam Detection Engine (AI + Deterministic)
+
+InboxZero AI assigns a **0–100 spam score** using layered heuristics:
+
+- Bulk sender domain detection  
+- High-risk scam phrases  
+- Suspicious URL patterns  
+- Promotional keyword density  
+- ALL CAPS subject lines  
+- Excessive exclamation marks  
+- Short-message phishing behavior  
+- Embedded shortened links  
+
+Final classification:
+- `safe`
+- `suspicious`
+- `danger`
+
+---
+
+### ⚙ Adjustable Spam Sensitivity
+
+Users can configure spam threshold in the popup.
+
+Default threshold: `60`
+
+This allows precise tuning between aggressive filtering and permissive sorting.
+
+---
+
+### 🔐 Secure API Key Handling
+
+- API key stored via `chrome.storage.sync`
+- No hardcoded credentials
+- No password storage
+- No backend server
+- Fully client-side execution
+
+---
+
+### 🧩 Native Gmail UI Injection
+
+The extension:
+- Injects summary panels directly into Gmail
+- Displays category labels inline
+- Shows spam score indicators
+- Preserves Gmail’s native UI experience
+
+No external dashboard required.
+
+---
+
+## 🏗 Architecture
+
+Frontend:
+- Chrome Extension (Manifest V3)
+- Gmail DOM Injection
+
+AI Layer:
+- Gemini 2.5 Flash Lite
+- Deterministic prompt design
+- Strict response enforcement
+
+Spam Engine:
+- Weighted scoring algorithm
+- Heuristic pattern detection
+- User-controlled sensitivity
+
+Security:
+- OAuth-based Gmail access
+- No server-side storage
+- No email persistence
+
+---
 ---
 
 ## 📦 Requirements
@@ -30,7 +137,8 @@ Before installing, make sure you have:
 3. Enable **Developer mode** (toggle in the top-right corner).
 4. Click **Load unpacked**.
 5. Select the extracted project folder (not the ZIP file).
-6. The extension will now be installed and visible in your extensions list.
+6. Follow the setup steps as per necessary.
+7. The extension will now be installed and visible in your extensions list.
 
 ---
 
