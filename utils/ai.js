@@ -16,11 +16,11 @@ async function getApiKey() {
         reject(new Error('Storage error: ' + chrome.runtime.lastError.message));
         return;
       }
-      if (!data.geminiKey || data.geminiKey.trim() === '') {
+      if (!data.apiKey || data.apiKey.trim() === '') {
         reject(new Error('NO_API_KEY'));
         return;
       }
-      resolve(data.geminiKey.trim());
+      resolve(data.apiKey.trim());
     });
   });
 }
