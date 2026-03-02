@@ -11,6 +11,10 @@ const IMPORTANCE_ID = "inboxzero-ai-importance";
 const TEMPLATE_PICKER_ID = "inboxzero-ai-template-picker";
 const ACTION_CONTAINER_ID = "inboxzero-ai-action-buttons";
 
+const UI_FONT_FAMILY = "Google Sans, Roboto, Arial, sans-serif";
+const UI_TEXT_SIZE = "13px";
+const UI_TEXT_LINE_HEIGHT = "1.5";
+
 // -------------------------------------------------------
 // CARD FACTORY — consistent card shell with dismiss
 // -------------------------------------------------------
@@ -18,18 +22,18 @@ function createCard(id, accentColor, onDismiss) {
   const card = document.createElement("div");
   card.id = id;
   card.style.cssText = `
-    font-family: Google Sans, Roboto, Arial, sans-serif;
-    font-size: 13px;
-    line-height: 1.5;
-    border-radius: 10px;
-    padding: 10px 36px 10px 14px;
+    font-family: ${UI_FONT_FAMILY};
+    font-size: ${UI_TEXT_SIZE};
+    line-height: ${UI_TEXT_LINE_HEIGHT};
+    border-radius: 0;
+    padding: 12px 38px 12px 14px;
     position: relative;
     border-left: 3px solid ${accentColor};
-    background: #1e1e2a;
-    border-top: 1px solid #2d2d3a;
-    border-right: 1px solid #2d2d3a;
-    border-bottom: 1px solid #2d2d3a;
-    color: #e8eaed;
+    background: #ffffff;
+    border-top: 1px solid #dadce0;
+    border-right: 1px solid #dadce0;
+    border-bottom: 1px solid #dadce0;
+    color: #202124;
     box-sizing: border-box;
     width: 100%;
   `;
@@ -41,10 +45,10 @@ function createCard(id, accentColor, onDismiss) {
   x.style.cssText = `
     position: absolute; top: 8px; right: 10px;
     background: none; border: none; cursor: pointer;
-    font-size: 11px; color: #9aa0a6; padding: 2px 4px;
-    border-radius: 4px; line-height: 1;
+    font-size: ${UI_TEXT_SIZE}; color: #5f6368; padding: 2px 4px;
+    border-radius: 0; line-height: 1;
   `;
-  x.onmouseenter = () => x.style.background = "rgba(255,255,255,0.08)";
+  x.onmouseenter = () => x.style.background = "#f1f3f4";
   x.onmouseleave = () => x.style.background = "none";
   x.addEventListener("click", e => { e.stopPropagation(); onDismiss(card); });
   card.appendChild(x);
@@ -52,9 +56,9 @@ function createCard(id, accentColor, onDismiss) {
   return card;
 }
 
-function cardLabel(text, color = "#9aa0a6") {
+function cardLabel(text, color = "#5f6368") {
   const el = document.createElement("div");
-  el.style.cssText = `font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: ${color}; margin-bottom: 4px;`;
+  el.style.cssText = `font-size: ${UI_TEXT_SIZE}; font-weight: 600; color: ${color}; margin-bottom: 6px;`;
   el.textContent = text;
   return el;
 }
@@ -70,17 +74,17 @@ function createButton(label, action) {
   button.dataset.inboxzeroRole = "action-button";
   button.textContent = label;
   button.style.cssText = `
-    margin-left: 8px; padding: 5px 11px;
-    border: 1px solid #d0d0d0; border-radius: 16px;
-    background: #fff; cursor: pointer; font-size: 12px;
-    font-family: Google Sans, Roboto, Arial, sans-serif;
-    font-weight: 500; color: #3c4043;
+    margin-left: 8px; padding: 7px 12px;
+    border: 1px solid #c7c9cc; border-radius: 0;
+    background: #fff; cursor: pointer; font-size: ${UI_TEXT_SIZE};
+    font-family: ${UI_FONT_FAMILY};
+    font-weight: 500; color: #202124;
     position: relative; z-index: 9999; pointer-events: all;
     transition: background 0.15s, border-color 0.15s;
     white-space: nowrap;
   `;
-  button.onmouseenter = () => { button.style.background = "#f6f8fc"; button.style.borderColor = "#aaa"; };
-  button.onmouseleave = () => { button.style.background = "#fff"; button.style.borderColor = "#d0d0d0"; };
+  button.onmouseenter = () => { button.style.background = "#f1f3f4"; button.style.borderColor = "#9aa0a6"; };
+  button.onmouseleave = () => { button.style.background = "#fff"; button.style.borderColor = "#c7c9cc"; };
   return button;
 }
 
@@ -100,8 +104,8 @@ function ensureActionButtons(toolbar, handlers, enabledFeatures = {}) {
 
   const actionConfig = [
     { action: "summarize",  label: "✦ Summarize",   onClick: handlers.onSummarizeClick },
-    { action: "categorize", label: "🏷 Categorize",  onClick: handlers.onCategorizeClick },
-    { action: "spamCheck",  label: "🛡 Spam Check",  onClick: handlers.onSpamCheckClick }
+    { action: "categorize", label: "Categorize",  onClick: handlers.onCategorizeClick },
+    { action: "spamCheck",  label: "Spam Check",  onClick: handlers.onSpamCheckClick }
   ];
 
   actionConfig.forEach(({ action, label, onClick }) => {
@@ -149,7 +153,7 @@ function ensureResultRoot(subjectElement, bodyElement) {
     root = document.createElement("div");
     root.id = ROOT_ID;
     root.style.cssText = `
-      display: flex; flex-direction: column; gap: 6px;
+      display: flex; flex-direction: column; gap: 8px;
       margin: 8px 0 12px 0; width: 100%; box-sizing: border-box;
     `;
     emailContainer.insertBefore(root, emailContainer.firstChild);
@@ -164,20 +168,20 @@ function renderSummary(root, bullets) {
   if (!root) return;
   let card = root.querySelector(`#${SUMMARY_ID}`);
   if (!card) {
-    card = createCard(SUMMARY_ID, "#8ab4f8", el => el.remove());
+    card = createCard(SUMMARY_ID, "#1a73e8", el => el.remove());
     root.appendChild(card);
   }
   // Clear old content (keep dismiss button)
   [...card.children].forEach(c => { if (c.tagName !== "BUTTON") c.remove(); });
 
-  card.insertBefore(cardLabel("✦ AI Summary", "#8ab4f8"), card.firstChild);
+  card.insertBefore(cardLabel("✦ AI Summary", "#1a73e8"), card.firstChild);
 
   const safeBullets = Array.isArray(bullets) ? bullets : [String(bullets)];
   const ul = document.createElement("ul");
   ul.style.cssText = "margin: 4px 0 0 16px; padding: 0;";
   safeBullets.forEach(b => {
     const li = document.createElement("li");
-    li.style.cssText = "color: #bdc1c6; margin-bottom: 2px;";
+    li.style.cssText = `color: #202124; margin-bottom: 2px; font-size: ${UI_TEXT_SIZE};`;
     li.textContent = String(b);
     ul.appendChild(li);
   });
@@ -188,18 +192,18 @@ function renderSummary(root, bullets) {
 // CATEGORY CARD
 // -------------------------------------------------------
 const CATEGORY_COLORS = {
-  Work:     { accent: "#81c995", bg: "#1e2e22" },
-  Personal: { accent: "#8ab4f8", bg: "#1e2430" },
-  Promo:    { accent: "#ffa756", bg: "#2e2318" },
-  Urgent:   { accent: "#f28b82", bg: "#2e1e1e" },
-  Spam:     { accent: "#f28b82", bg: "#2e1e1e" },
+  Work:     { accent: "#188038", bg: "#ffffff" },
+  Personal: { accent: "#1967d2", bg: "#ffffff" },
+  Promo:    { accent: "#b06000", bg: "#ffffff" },
+  Urgent:   { accent: "#c5221f", bg: "#ffffff" },
+  Spam:     { accent: "#c5221f", bg: "#ffffff" },
 };
 
 function renderCategory(root, category, labelApplied) {
   if (!root) return;
   let card = root.querySelector(`#${CATEGORY_ID}`);
 
-  const colors = CATEGORY_COLORS[category] || { accent: "#9aa0a6", bg: "#1e1e2a" };
+  const colors = CATEGORY_COLORS[category] || { accent: "#5f6368", bg: "#ffffff" };
 
   if (!card) {
     card = createCard(CATEGORY_ID, colors.accent, el => el.remove());
@@ -210,23 +214,23 @@ function renderCategory(root, category, labelApplied) {
 
   [...card.children].forEach(c => { if (c.tagName !== "BUTTON") c.remove(); });
 
-  card.insertBefore(cardLabel("🏷 Category", colors.accent), card.firstChild);
+  card.insertBefore(cardLabel("Category", colors.accent), card.firstChild);
 
   const row = document.createElement("div");
   row.style.cssText = "display:flex;align-items:center;gap:8px;flex-wrap:wrap;";
 
   const badge = document.createElement("span");
   badge.style.cssText = `
-    display:inline-block; padding: 2px 10px; border-radius: 999px;
-    background: ${colors.accent}22; border: 1px solid ${colors.accent}66;
-    color: ${colors.accent}; font-size: 12px; font-weight: 600;
+    display:inline-block; padding: 2px 10px; border-radius: 0;
+    background: #ffffff; border: 1px solid ${colors.accent};
+    color: ${colors.accent}; font-size: ${UI_TEXT_SIZE}; font-weight: 600;
   `;
   badge.textContent = category;
   row.appendChild(badge);
 
   if (labelApplied) {
     const tag = document.createElement("span");
-    tag.style.cssText = "font-size:11px;color:#9aa0a6;";
+    tag.style.cssText = `font-size:${UI_TEXT_SIZE};color:#5f6368;`;
     tag.textContent = "✓ Gmail label applied";
     row.appendChild(tag);
   }
@@ -243,8 +247,8 @@ function renderSpamWarning(root, spamResult, onDelete) {
   const score = Number(spamResult?.score ?? 0);
   const isDanger = score >= 60 || spamResult?.flagged;
   const isSuspicious = score >= 30 && score < 60;
-  const accent = isDanger ? "#f28b82" : isSuspicious ? "#ffa756" : "#81c995";
-  const bg = isDanger ? "#2e1e1e" : isSuspicious ? "#2e2318" : "#1e2e22";
+  const accent = isDanger ? "#c5221f" : isSuspicious ? "#b06000" : "#188038";
+  const bg = "#ffffff";
 
   if (!card) {
     card = createCard(SPAM_ID, accent, el => el.remove());
@@ -254,19 +258,19 @@ function renderSpamWarning(root, spamResult, onDelete) {
   card.style.background = bg;
   [...card.children].forEach(c => { if (c.tagName !== "BUTTON") c.remove(); });
 
-  const levelText = isDanger ? "⚠️ Spam Detected" : isSuspicious ? "⚡ Suspicious" : "✓ Spam Check";
+  const levelText = isDanger ? "Spam Detected" : isSuspicious ? "Suspicious" : "Spam Check";
   card.insertBefore(cardLabel(levelText, accent), card.firstChild);
 
   // Score bar
   const barWrap = document.createElement("div");
   barWrap.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:4px;";
   const barTrack = document.createElement("div");
-  barTrack.style.cssText = `flex:1;height:4px;border-radius:2px;background:#2d2d3a;`;
+  barTrack.style.cssText = `flex:1;height:4px;border-radius:0;background:#e8eaed;`;
   const barFill = document.createElement("div");
-  barFill.style.cssText = `height:4px;border-radius:2px;background:${accent};width:${score}%;transition:width 0.4s;`;
+  barFill.style.cssText = `height:4px;border-radius:0;background:${accent};width:${score}%;transition:width 0.4s;`;
   barTrack.appendChild(barFill);
   const scoreLabel = document.createElement("span");
-  scoreLabel.style.cssText = `font-size:12px;font-weight:700;color:${accent};min-width:32px;`;
+  scoreLabel.style.cssText = `font-size:${UI_TEXT_SIZE};font-weight:700;color:${accent};min-width:54px;`;
   scoreLabel.textContent = `${score}/100`;
   barWrap.appendChild(barTrack);
   barWrap.appendChild(scoreLabel);
@@ -275,7 +279,7 @@ function renderSpamWarning(root, spamResult, onDelete) {
   // Reasoning
   if (spamResult?.reasoning) {
     const reason = document.createElement("div");
-    reason.style.cssText = "font-size:11px;color:#9aa0a6;margin-bottom:4px;";
+    reason.style.cssText = `font-size:${UI_TEXT_SIZE};color:#5f6368;margin-bottom:4px;`;
     reason.textContent = spamResult.reasoning;
     card.insertBefore(reason, card.querySelector("button"));
   }
@@ -287,7 +291,7 @@ function renderSpamWarning(root, spamResult, onDelete) {
     flagList.style.cssText = "display:flex;flex-wrap:wrap;gap:4px;";
     flags.slice(0, 3).forEach(f => {
       const pill = document.createElement("span");
-      pill.style.cssText = `font-size:10px;padding:1px 6px;border-radius:4px;background:${accent}22;color:${accent};`;
+      pill.style.cssText = `font-size:${UI_TEXT_SIZE};padding:1px 6px;border-radius:0;background:#ffffff;border:1px solid ${accent};color:${accent};`;
       pill.textContent = f;
       flagList.appendChild(pill);
     });
@@ -300,12 +304,12 @@ function renderSpamWarning(root, spamResult, onDelete) {
     delBtn.type = "button";
     delBtn.textContent = "🗑 Move to Trash";
     delBtn.style.cssText = `
-      margin-top: 8px; padding: 5px 12px; background: #f28b8222;
-      border: 1px solid #f28b82; border-radius: 6px; color: #f28b82;
-      font-size: 12px; cursor: pointer; font-family: inherit;
+      margin-top: 8px; padding: 5px 12px; background: #ffffff;
+      border: 1px solid #c5221f; border-radius: 0; color: #c5221f;
+      font-size: ${UI_TEXT_SIZE}; cursor: pointer; font-family: inherit;
     `;
-    delBtn.onmouseenter = () => { delBtn.style.background = "#f28b8244"; };
-    delBtn.onmouseleave = () => { delBtn.style.background = "#f28b8222"; };
+    delBtn.onmouseenter = () => { delBtn.style.background = "#fce8e6"; };
+    delBtn.onmouseleave = () => { delBtn.style.background = "#ffffff"; };
     delBtn.addEventListener("click", async e => {
       e.stopPropagation();
       delBtn.textContent = "Deleting...";
@@ -331,7 +335,7 @@ function renderImportance(root, result) {
   card.insertBefore(cardLabel("❗ Important Email", "#ffa756"), card.firstChild);
   if (result.reason) {
     const r = document.createElement("div");
-    r.style.cssText = "font-size:12px;color:#bdc1c6;";
+    r.style.cssText = `font-size:${UI_TEXT_SIZE};color:#202124;`;
     r.textContent = result.reason;
     card.insertBefore(r, card.querySelector("button"));
   }
@@ -353,9 +357,9 @@ function renderTemplatePicker(composeToolbar, templates, onSelectTemplate) {
   const picker = document.createElement("select");
   picker.id = TEMPLATE_PICKER_ID;
   picker.style.cssText = `
-    margin-left: 8px; padding: 4px 8px; border-radius: 16px;
-    border: 1px solid #d0d0d0; background: #fff; font-size: 12px;
-    cursor: pointer; color: #3c4043; font-family: Google Sans, Roboto, Arial, sans-serif;
+    margin-left: 8px; padding: 4px 8px; border-radius: 0;
+    border: 1px solid #c7c9cc; background: #fff; font-size: ${UI_TEXT_SIZE};
+    cursor: pointer; color: #202124; font-family: ${UI_FONT_FAMILY};
   `;
   const placeholder = document.createElement("option");
   placeholder.value = "";
