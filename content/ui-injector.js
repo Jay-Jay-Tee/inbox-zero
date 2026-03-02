@@ -19,7 +19,18 @@ function createButton(label, action) {
   button.style.background = "#fff";
   button.style.cursor = "pointer";
   button.style.fontSize = "12px";
+  // Fix: ensure buttons are above Gmail's overlay divs
+  button.style.position = "relative";
+  button.style.zIndex = "9999";
+  button.style.pointerEvents = "all";
   return button;
+}
+
+// Removes ALL injected elements from the page (called on unload/disable)
+function cleanupAllInjectedElements() {
+  document.querySelectorAll(
+    `#${ACTION_CONTAINER_ID}, #${ROOT_ID}, #${TEMPLATE_PICKER_ID}`
+  ).forEach(el => el.remove());
 }
 
 function ensureActionButtons(toolbar, handlers, enabledFeatures = {}) {
@@ -229,5 +240,6 @@ export {
   renderCategory,
   renderSpamWarning,
   renderTemplatePicker,
-  removeTemplatePicker
+  removeTemplatePicker,
+  cleanupAllInjectedElements
 };

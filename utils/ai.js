@@ -4,7 +4,7 @@
 // All prompts and API calls live here.
 // ============================================================
 
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
 // -------------------------------------------------------
 // Get API Key from Chrome Storage (saved by Dev 3's popup)

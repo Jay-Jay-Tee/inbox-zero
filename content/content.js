@@ -17,7 +17,8 @@
     renderCategory,
     renderSpamWarning,
     renderTemplatePicker,
-    removeTemplatePicker
+    removeTemplatePicker,
+    cleanupAllInjectedElements
   } = uiModule;
 
   const DEFAULT_TOGGLES = {
@@ -264,4 +265,8 @@
     childList: true,
     subtree: true
   });
+
+  // Clean up all injected elements when extension is disabled or page unloads
+  window.addEventListener("unload", cleanupAllInjectedElements);
+  chrome.runtime.connect().onDisconnect.addListener(cleanupAllInjectedElements);
 })();
