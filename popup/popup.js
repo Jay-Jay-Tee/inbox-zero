@@ -293,13 +293,32 @@ function initDashboard() {
 
     if (switchGmailBtn) {
         switchGmailBtn.addEventListener("click", () => {
-            setStatus("Switching account…");
+            const originalLabel = switchGmailBtn.textContent;
+            switchGmailBtn.disabled = true;
+            switchGmailBtn.textContent = "Switching…";
+            setStatus("Clearing saved Gmail login…");
             chrome.runtime.sendMessage({ type: "CLEAR_GMAIL_TOKEN" }, (res) => {
                 if (!res || res.success === false) {
+                    switchGmailBtn.disabled = false;
+                    switchGmailBtn.textContent = originalLabel;
                     setStatus(res && res.error ? res.error : "Could not clear token.");
                     return;
                 }
-                setStatus("Switched account mode. Next action will prompt you to choose an account again.");
+
+                setStatus("Choose your Gmail account in the Google prompt (pick your secondary account).\n\nIf you don't see it, choose “Use another account”.");
+                chrome.runtime.sendMessage({ type: "CONNECT_GMAIL_ACCOUNT" }, (connectRes) => {
+                    switchGmailBtn.disabled = false;
+                    switchGmailBtn.textContent = originalLabel;
+
+                    if (!connectRes || connectRes.success === false) {
+                        setStatus(connectRes && connectRes.error ? connectRes.error : "Account switch was canceled or failed.");
+                        return;
+                    }
+
+                    const newEmail = connectRes.gmail?.emailAddress || "Connected";
+                    if (connectedEmailEl) connectedEmailEl.textContent = newEmail;
+                    setStatus(`Connected to ${newEmail}.`);
+                });
             });
         });
     }

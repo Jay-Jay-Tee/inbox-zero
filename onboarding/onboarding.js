@@ -60,17 +60,6 @@ async function testGmailOAuth() {
   return { emailAddress: data.emailAddress || '', messagesTotal: data.messagesTotal || 0 };
 }
 
-async function clearCachedGmailToken() {
-  // If Chrome has a cached token, this removes it so the next auth prompt can switch accounts.
-  const token = await new Promise((resolve) => {
-    chrome.identity.getAuthToken({ interactive: false }, (t) => resolve(t || ''));
-  });
-  if (!token) return false;
-
-  await new Promise((resolve) => chrome.identity.removeCachedAuthToken({ token }, () => resolve()));
-  return true;
-}
-
 async function saveGeminiKey(key) {
   const trimmed = (key || '').trim();
   if (!trimmed) throw new Error('Paste your Gemini key first.');
@@ -128,7 +117,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const msgGemini = el('msgGemini');
 
   const btnTestOAuth = el('btnTestOAuth');
-  const btnSwitchOAuth = el('btnSwitchOAuth');
   const btnOpenExtensions = el('btnOpenExtensions');
 
   const keyInput = el('geminiKeyInput');
@@ -168,31 +156,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       } finally {
         btnTestOAuth.disabled = false;
         btnTestOAuth.textContent = 'Test Gmail connection';
-        await refreshUI();
-      }
-    });
-  }
-
-  if (btnSwitchOAuth) {
-    btnSwitchOAuth.addEventListener('click', async () => {
-      setMsg(msgOAuth, '');
-      btnSwitchOAuth.disabled = true;
-      btnSwitchOAuth.textContent = 'Clearing…';
-      try {
-        const cleared = await clearCachedGmailToken();
-        await setLocal({ onboardingOAuthOk: false, onboardingOAuthEmail: '', onboardingComplete: false });
-        setMsg(
-          msgOAuth,
-          cleared
-            ? 'Cleared cached Gmail login (permission is preserved). Click “Test Gmail connection” and choose the account you want.'
-            : 'No cached Gmail login found. Click “Test Gmail connection” to choose an account.',
-          'ok'
-        );
-      } catch (e) {
-        setMsg(msgOAuth, String(e?.message || e), 'err');
-      } finally {
-        btnSwitchOAuth.disabled = false;
-        btnSwitchOAuth.textContent = 'Switch Gmail account';
         await refreshUI();
       }
     });

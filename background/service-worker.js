@@ -156,6 +156,11 @@ async function fetchDashboardMetrics() {
 }
 
 async function clearCachedAuthToken() {
+  if (typeof chrome.identity.clearAllCachedAuthTokens === 'function') {
+    await new Promise((resolve) => chrome.identity.clearAllCachedAuthTokens(() => resolve()));
+    return true;
+  }
+
   const token = await new Promise((resolve) => {
     chrome.identity.getAuthToken({ interactive: false }, (t) => resolve(t || ''));
   });
@@ -516,6 +521,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         .catch(err => sendResponse({ success: false, error: err.message }));
       return true;
 
+    case 'CONNECT_GMAIL_ACCOUNT':
+      fetchDashboardMetrics()
+        .then((metrics) => sendResponse({ success: true, gmail: metrics }))
+        .catch(err => sendResponse({ success: false, error: err.message }));
+      return true;
+
     case 'RUN_ACTION':
       runQuickAction(message.action)
         .then(result => sendResponse({ success: true, ...result }))
@@ -587,9 +598,17 @@ chrome.runtime.onInstalled.addListener((details) => {
   });
 
   if (details.reason === 'install') {
-    // Open onboarding instructions so the user can create + paste their Gemini key
     chrome.tabs.create({
       url: chrome.runtime.getURL('onboarding/index.html')
+    });
+  }
+
+  if (details.reason === 'update') {
+    chrome.storage.local.get(['onboardingComplete'], (local) => {
+      if (local.onboardingComplete === true) return;
+      chrome.tabs.create({
+        url: chrome.runtime.getURL('onboarding/index.html')
+      });
     });
   }
 });
