@@ -136,7 +136,8 @@
       sender: emailData.sender,
       messageId: emailData.messageId
     });
-    if (root) renderCategory(root, response?.category || "Unknown", response?.labelApplied);
+    // labelApplied is always false until OAuth ships
+    if (root) renderCategory(root, response?.category || "Unknown", false);
   }
 
   async function onSpamCheckClick() {
@@ -153,11 +154,8 @@
       text
     });
     if (!root) return;
-    // Provide delete callback using message ID
-    const onDelete = emailData.messageId
-      ? () => sendMessage({ type: "TRASH_MESSAGE", messageId: emailData.messageId })
-      : null;
-    renderSpamWarning(root, response || { score: 0, flags: [] }, onDelete);
+    // TRASH_MESSAGE requires OAuth — coming soon. Always pass null until then.
+    renderSpamWarning(root, response || { score: 0, flags: [] }, null);
   }
 
   async function onTemplatesClick() {
@@ -177,22 +175,9 @@
     });
   }
 
-  // Auto-importance check (runs when email opens, if toggle enabled)
-  async function runImportanceCheck(emailData) {
-    if (!featureToggles.important) return;
-    const text = emailData.bodyText || emailData.emailText;
-    if (!text) return;
-    const response = await sendMessage({
-      type: "CHECK_IMPORTANCE",
-      text,
-      sender: emailData.sender,
-      messageId: emailData.messageId
-    });
-    if (response?.isImportant) {
-      const root = ensureResultRoot(emailData.subjectElement, emailData.bodyElement);
-      if (root) renderImportance(root, response);
-    }
-  }
+  // CHECK_IMPORTANCE requires OAuth to apply Gmail labels — coming soon.
+  // Skipping entirely until OAuth is production-ready.
+  async function runImportanceCheck(_emailData) { /* no-op */ }
 
   // -------------------------------------------------------
   // Inject / remove buttons based on current view

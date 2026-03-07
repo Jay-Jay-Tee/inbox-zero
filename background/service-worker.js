@@ -374,16 +374,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       (async () => {
         try {
           const result = await categorizeEmail(message.text, message.sender);
-          let labelApplied = false;
-          if (message.messageId) {
-            try {
-              const labelResult = await applyCategoryLabel(result.category, message.messageId);
-              labelApplied = Boolean(labelResult.applied);
-            } catch (e) {
-              console.warn('[InboxZero] Failed to apply Gmail label:', e);
-            }
-          }
-          sendResponse({ success: true, category: result.category, labelApplied });
+          // NOTE: Gmail label application via OAuth is a coming-soon feature.
+          // Skipping applyCategoryLabel() here intentionally to avoid triggering
+          // the OAuth popup. Re-enable once OAuth flow is production-ready.
+          sendResponse({ success: true, category: result.category, labelApplied: false });
         } catch (err) {
           sendResponse({ success: false, error: err.message });
         }
@@ -482,15 +476,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     case 'CHECK_IMPORTANCE':
       checkImportance(message.text, message.sender, message.subject)
-        .then(async (result) => {
-          if (result.isImportant && message.messageId) {
-            try {
-              await applyCategoryLabel('Urgent', message.messageId);
-              incrementStat('importantLabeled');
-            } catch (e) {
-              console.warn('[InboxZero] Failed to apply important label:', e);
-            }
-          }
+        .then((result) => {
+          // NOTE: Applying Gmail 'Important' label via applyCategoryLabel() requires OAuth.
+          // Skipped intentionally — coming soon. Just return the importance verdict for now.
           sendResponse({ success: true, ...result });
         })
         .catch(err => sendResponse({ success: false, error: err.message }));

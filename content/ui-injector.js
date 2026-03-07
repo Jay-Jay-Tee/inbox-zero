@@ -228,10 +228,11 @@ function renderCategory(root, category, labelApplied) {
   badge.textContent = category;
   row.appendChild(badge);
 
-  if (labelApplied) {
+  // Gmail label application requires OAuth — show coming-soon note instead
+  {
     const tag = document.createElement("span");
-    tag.style.cssText = `font-size:${UI_TEXT_SIZE};color:#5f6368;`;
-    tag.textContent = "✓ Gmail label applied";
+    tag.style.cssText = `font-size:${UI_TEXT_SIZE};color:#9aa0a6;display:inline-flex;align-items:center;gap:4px;`;
+    tag.innerHTML = `🔒 Gmail label sync <span style="font-size:10px;padding:1px 5px;background:#e8eaed;border-radius:8px;color:#5f6368;font-weight:600;">Coming Soon</span>`;
     row.appendChild(tag);
   }
 
@@ -256,7 +257,11 @@ function renderSpamWarning(root, spamResult, onDelete) {
   }
   card.style.borderLeftColor = accent;
   card.style.background = bg;
-  [...card.children].forEach(c => { if (c.tagName !== "BUTTON") c.remove(); });
+  // Remove everything except the dismiss (✕) button to prevent duplicate "Move to Trash" buttons
+  // accumulating across re-renders (e.g. "Analyzing..." placeholder → final result)
+  [...card.children].forEach(c => {
+    if (c.tagName !== "BUTTON" || c.textContent.trim() !== "✕") c.remove();
+  });
 
   const levelText = isDanger ? "Spam Detected" : isSuspicious ? "Suspicious" : "Spam Check";
   card.insertBefore(cardLabel(levelText, accent), card.firstChild);
@@ -298,26 +303,19 @@ function renderSpamWarning(root, spamResult, onDelete) {
     card.insertBefore(flagList, card.querySelector("button"));
   }
 
-  // Delete button — only for danger emails
-  if (isDanger && onDelete) {
-    const delBtn = document.createElement("button");
-    delBtn.type = "button";
-    delBtn.textContent = "🗑 Move to Trash";
-    delBtn.style.cssText = `
-      margin-top: 8px; padding: 5px 12px; background: #ffffff;
-      border: 1px solid #c5221f; border-radius: 0; color: #c5221f;
-      font-size: ${UI_TEXT_SIZE}; cursor: pointer; font-family: inherit;
+  // "Move to Trash" requires OAuth — show a disabled coming-soon chip instead
+  if (isDanger) {
+    const comingSoonBtn = document.createElement("button");
+    comingSoonBtn.type = "button";
+    comingSoonBtn.disabled = true;
+    comingSoonBtn.style.cssText = `
+      margin-top: 8px; padding: 5px 12px; background: #f8f9fa;
+      border: 1px solid #dadce0; border-radius: 0; color: #9aa0a6;
+      font-size: ${UI_TEXT_SIZE}; cursor: not-allowed; font-family: inherit;
+      display: inline-flex; align-items: center; gap: 6px;
     `;
-    delBtn.onmouseenter = () => { delBtn.style.background = "#fce8e6"; };
-    delBtn.onmouseleave = () => { delBtn.style.background = "#ffffff"; };
-    delBtn.addEventListener("click", async e => {
-      e.stopPropagation();
-      delBtn.textContent = "Deleting...";
-      delBtn.disabled = true;
-      await onDelete();
-      card.remove();
-    });
-    card.insertBefore(delBtn, card.querySelector("button"));
+    comingSoonBtn.innerHTML = `🗑 Move to Trash <span style="font-size:10px;padding:1px 5px;background:#e8eaed;border-radius:8px;color:#5f6368;font-weight:600;">Coming Soon</span>`;
+    card.insertBefore(comingSoonBtn, card.querySelector("button"));
   }
 }
 
