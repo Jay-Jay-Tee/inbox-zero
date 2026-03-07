@@ -304,19 +304,19 @@ function renderSpamWarning(root, spamResult, onDelete) {
   }
 
   // "Move to Trash" requires OAuth — show a disabled coming-soon chip instead
-  if (isDanger) {
-    const comingSoonBtn = document.createElement("button");
-    comingSoonBtn.type = "button";
-    comingSoonBtn.disabled = true;
-    comingSoonBtn.style.cssText = `
-      margin-top: 8px; padding: 5px 12px; background: #f8f9fa;
-      border: 1px solid #dadce0; border-radius: 0; color: #9aa0a6;
-      font-size: ${UI_TEXT_SIZE}; cursor: not-allowed; font-family: inherit;
-      display: inline-flex; align-items: center; gap: 6px;
-    `;
-    comingSoonBtn.innerHTML = `🗑 Move to Trash <span style="font-size:10px;padding:1px 5px;background:#e8eaed;border-radius:8px;color:#5f6368;font-weight:600;">Coming Soon</span>`;
-    card.insertBefore(comingSoonBtn, card.querySelector("button"));
-  }
+  // if (isDanger) {
+  //   const comingSoonBtn = document.createElement("button");
+  //   comingSoonBtn.type = "button";
+  //   comingSoonBtn.disabled = true;
+  //   comingSoonBtn.style.cssText = `
+  //     margin-top: 8px; padding: 5px 12px; background: #f8f9fa;
+  //     border: 1px solid #dadce0; border-radius: 0; color: #9aa0a6;
+  //     font-size: ${UI_TEXT_SIZE}; cursor: not-allowed; font-family: inherit;
+  //     display: inline-flex; align-items: center; gap: 6px;
+  //   `;
+  //   comingSoonBtn.innerHTML = `🗑 Move to Trash <span style="font-size:10px;padding:1px 5px;background:#e8eaed;border-radius:8px;color:#5f6368;font-weight:600;">Coming Soon</span> `;
+  //   card.insertBefore(comingSoonBtn, card.querySelector("button"));
+  // }
 }
 
 // -------------------------------------------------------
