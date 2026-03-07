@@ -478,3 +478,80 @@ input:checked+.slider:before {
 .api-send:hover {
     background: #22c55e;
 }
+/* ── Popup OAuth lock divider ─────────────────────────────── */
+.popup-divider-lock {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 4px 6px;
+}
+
+.popup-divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(148,163,184,0.2), transparent);
+}
+
+.popup-divider-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #1e1e1e;
+    border: 1px solid rgba(148,163,184,0.25);
+    color: #64748b;
+    flex-shrink: 0;
+}
+
+/* ── Popup OAuth Coming Soon section ─────────────────────── */
+.popup-oauth-section {
+    position: relative;
+    overflow: hidden;
+}
+
+.popup-oauth-section > *:not(.popup-coming-soon-overlay) {
+    filter: blur(1.5px);
+    opacity: 0.4;
+    pointer-events: none;
+    user-select: none;
+}
+
+.popup-coming-soon-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 10, 18, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.popup-coming-soon-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transform: rotate(-6deg);
+    background: rgba(20, 20, 30, 0.95);
+    border: 1px solid rgba(249,115,22,0.45);
+    border-radius: 8px;
+    padding: 7px 14px;
+    box-shadow:
+        0 0 20px rgba(249,115,22,0.15),
+        0 3px 12px rgba(0,0,0,0.6);
+}
+
+.pcs-icon {
+    font-size: 13px;
+}
+
+.pcs-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fdba74;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}

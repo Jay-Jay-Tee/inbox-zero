@@ -10,133 +10,131 @@
     <header class="hero">
       <div class="hero-top">
         <div class="hero-badge">Setup</div>
-        <div id="progressPill" class="pill">0 / 2 complete</div>
+        <div id="progressPill" class="pill">0 / 1 complete</div>
       </div>
       <h1>InboxZero AI setup</h1>
-      <p class="hero-sub">Finish these two checks once. After that, everything just works.</p>
+      <p class="hero-sub">One quick step and you're ready. Everything else runs automatically.</p>
     </header>
 
     <main>
-      <section id="stepOAuth" class="card step-card">
+      <!-- STEP 1: Gemini API Key (active, required) -->
+      <section id="stepGemini" class="card step-card">
         <div class="step-head">
           <div>
             <div class="step-kicker">Step 1</div>
-            <h2>Connect Gmail (OAuth)</h2>
-          </div>
-          <div id="statusOAuth" class="status pending">Not verified</div>
-        </div>
-
-        <p class="subtle">
-          This enables dashboard stats + one‑click actions. It uses your Google account permission prompt.
-        </p>
-
-        <details class="details" open>
-          <summary>Show me the setup steps</summary>
-          <ol class="steps">
-            <li>Create a project in Google Cloud Console.</li>
-            <li>Enable <strong>Gmail API</strong> for that project.</li>
-            <li>
-              Set up the <strong>OAuth consent screen</strong>:
-              <ul>
-                <li>Choose <strong>External</strong> user type.</li>
-                <li>Set publishing status to <strong>Testing</strong> (for development).</li>
-                <li>Under <strong>Test users</strong>, add your own Gmail address.</li>
-              </ul>
-            </li>
-            <li>Create an OAuth client ID with application type <strong>Chrome Extension</strong>.</li>
-            <li>
-              For <strong>Item ID</strong>, paste your extension ID from <code>chrome://extensions</code>
-              (Developer mode must be ON to see it).
-            </li>
-            <li>Copy the OAuth <strong>Client ID</strong> and paste it into <code>manifest.json</code> under <code>oauth2.client_id</code>.</li>
-            <li>Go to <code>chrome://extensions</code> and click <strong>Reload</strong> for this extension.</li>
-            <li>Come back here and click <strong>Test Gmail connection</strong>.</li>
-          </ol>
-          <p class="hint">
-            Common errors:
-            <br><strong>403 access_denied</strong> → you forgot to add your email under <strong>Test users</strong>.
-            <br><strong>bad client id</strong> → the OAuth client was created for a different extension ID (Item ID mismatch).
-          </p>
-        </details>
-
-        <div class="actions">
-          <button id="btnTestOAuth" class="btn primary">Test Gmail connection</button>
-          <button id="btnOpenExtensions" class="btn">Open chrome://extensions</button>
-        </div>
-        <div id="msgOAuth" class="msg"></div>
-      </section>
-
-      <section id="stepGemini" class="card step-card disabled">
-        <div class="step-head">
-          <div>
-            <div class="step-kicker">Step 2</div>
             <h2>Add your Gemini API key</h2>
           </div>
           <div id="statusGemini" class="status pending">Not verified</div>
         </div>
 
         <p class="subtle">
-          This is required for AI summaries and classification. The key is stored in Chrome sync storage.
+          Required for AI summaries and smart categorization. Stored securely in Chrome sync storage — never leaves your browser.
         </p>
 
         <details class="details">
-          <summary>Show me the steps</summary>
+          <summary>How to get a Gemini API key</summary>
           <ol class="steps">
-            <li>
-              Open
-              <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">
-                Google AI Studio – API Keys
-              </a>.
-            </li>
-            <li>Sign in with the Google account you want to use.</li>
+            <li>Open <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">Google AI Studio – API Keys</a>.</li>
+            <li>Sign in with any Google account.</li>
             <li>Click <strong>Create API key</strong> and copy it.</li>
             <li>Paste it below and click <strong>Save</strong>.</li>
             <li>Click <strong>Verify key works</strong> to complete setup.</li>
           </ol>
           <p class="hint">
-            Common errors:
-            <br><strong>NO_API_KEY</strong> → the key wasn’t saved yet (click Save).
-            <br><strong>API error 4xx/5xx</strong> → the key is invalid, revoked, or rate-limited. Create a new one.
+            <strong>NO_API_KEY</strong> → click Save before verifying.<br>
+            <strong>API error 4xx/5xx</strong> → key is invalid or rate-limited. Create a new one.
           </p>
         </details>
 
         <div class="input-row">
-          <input id="geminiKeyInput" class="text-input" placeholder="Paste Gemini API key here">
+          <input id="geminiKeyInput" class="text-input" placeholder="Paste Gemini API key here…">
           <button id="btnSaveGeminiKey" class="btn">Save</button>
         </div>
 
         <div class="actions">
-          <a class="btn link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">Get a Gemini key</a>
+          <a class="btn link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">↗ Get a key</a>
           <button id="btnTestGemini" class="btn primary">Verify key works</button>
         </div>
         <div id="msgGemini" class="msg"></div>
       </section>
 
+      <!-- STEP 2: OAuth — Coming Soon -->
+      <div class="coming-soon-wrapper">
+        <div class="divider-lock">
+          <div class="divider-line"></div>
+          <div class="divider-icon" title="Requires OAuth — coming soon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <div class="divider-line"></div>
+        </div>
+
+        <section id="stepOAuth" class="card step-card oauth-card">
+          <div class="step-head">
+            <div>
+              <div class="step-kicker">Step 2</div>
+              <h2>Connect Gmail (OAuth)</h2>
+            </div>
+            <div class="status pending">Optional</div>
+          </div>
+
+          <p class="subtle">
+            Enables dashboard stats, connected email display, and one-click inbox actions via your Google account.
+          </p>
+
+          <details class="details">
+            <summary>Setup steps</summary>
+            <ol class="steps">
+              <li>Create a project in Google Cloud Console.</li>
+              <li>Enable <strong>Gmail API</strong> for that project.</li>
+              <li>Set up the <strong>OAuth consent screen</strong> (External, Testing mode, add your Gmail as test user).</li>
+              <li>Create an OAuth client ID for <strong>Chrome Extension</strong>.</li>
+              <li>Paste your extension ID from <code>chrome://extensions</code> as the Item ID.</li>
+              <li>Copy the OAuth <strong>Client ID</strong> into <code>manifest.json</code> under <code>oauth2.client_id</code>.</li>
+              <li>Reload the extension and click <strong>Test Gmail connection</strong>.</li>
+            </ol>
+          </details>
+
+          <div class="actions">
+            <button id="btnTestOAuth" class="btn primary">Test Gmail connection</button>
+            <button id="btnOpenExtensions" class="btn">Open chrome://extensions</button>
+          </div>
+          <div id="msgOAuth" class="msg"></div>
+
+          <!-- Coming Soon overlay -->
+          <div class="coming-soon-overlay">
+            <div class="coming-soon-badge">
+              <span class="cs-icon">🔒</span>
+              <span class="cs-text">Testing — Coming Soon</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Done card -->
       <section id="doneCard" class="card done-card hidden">
         <div class="done-top">
-          <div class="status success">All set</div>
-          <div class="pill">2 / 2 complete</div>
+          <div class="status success">✓ All set</div>
+          <div class="pill">1 / 1 complete</div>
         </div>
         <h2>Setup complete</h2>
-        <p class="subtle">You can close this tab. Open Gmail and use the buttons on any email.</p>
+        <p class="subtle">Your Gemini key is verified. Open Gmail and InboxZero AI will enhance every email automatically.</p>
         <div class="actions">
-          <a href="https://mail.google.com/" target="_blank" rel="noreferrer" class="btn primary">Open Gmail</a>
-          <button id="btnOpenPopupHint" class="btn">Open extension popup</button>
+          <a href="https://mail.google.com/" target="_blank" rel="noreferrer" class="btn primary">Open Gmail →</a>
         </div>
-        <div class="hint">
-          Tip: pin the extension so the dashboard is one click away.
-        </div>
+        <div class="hint">Tip: Pin the extension to your toolbar so the dashboard is one click away.</div>
       </section>
     </main>
 
     <footer class="footer">
       <span>InboxZero AI</span>
       <span class="dot">•</span>
-      <span>Setup runs locally in your browser.</span>
+      <span>Setup runs locally in your browser. No data leaves your device.</span>
     </footer>
   </div>
 
   <script src="onboarding.js"></script>
 </body>
 </html>
-
