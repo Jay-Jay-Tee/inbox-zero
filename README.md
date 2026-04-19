@@ -123,7 +123,7 @@ Before installing, make sure you have:
 
 ### 1️⃣ Download the Extension
 
-1. Go to the **Releases** page of https://github.com/Jay-Jay-Tee/gmail-chrome-extension.git.
+1. Go to the **Releases** page of https://github.com/Jay-Jay-Tee/inbox-zero.
 2. Download the latest `.zip` file from the **Assets** section.
 3. Extract the ZIP file to a folder on your computer.
 
