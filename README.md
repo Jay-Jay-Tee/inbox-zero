@@ -187,4 +187,5 @@ To update the extension:
 
 
 ## 📜 License
-MIT License
+MIT License — see [LICENSE](LICENSE)
+
